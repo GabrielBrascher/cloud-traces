@@ -81,13 +81,15 @@ public class CloudTracesSimulator {
     public static void main(String[] args) {
         validateInputFile(args);
 
-        String cloudTracesFile = args[0];
-
-        try {
-            algorithmName = args[1];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            algorithmName = "";
-        }
+        //TODO remove when publishing the code
+        String cloudTracesFile = "cloudVmTraces.csv";
+        //        String cloudTracesFile = args[0];
+        //
+        //        try {
+        //            algorithmName = args[1];
+        //        } catch (ArrayIndexOutOfBoundsException e) {
+        //            algorithmName = "";
+        //        }
 
         Collection<VirtualMachine> virtualMachines = getAllVirtualMachinesFromCloudTraces(cloudTracesFile);
         logger.info(String.format("#VirtualMachines [%d] found on [%s].", virtualMachines.size(), cloudTracesFile));
