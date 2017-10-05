@@ -1,6 +1,6 @@
 # Cluster VMs balancing through hosts and VMs similarity 
 
-This project adds a set of heuristics capable of balancing VMs across hosts, avoiding service degradation caused by VMs competition. The proposed VMs balancing algorithm uses hosts and VMs similarities and is presented at the IEEE CLOUD 2017 conference.
+This project adds a set of heuristics capable of balancing VMs across hosts, avoiding service degradation caused by VMs competition. The proposed VMs balancing algorithm uses hosts and VMs similarities and is presented at the IEEE SERVICES 2017 conference.
 
 ## Cloud-traces
 This is a branch from the project Cloud-traces. Cloud-traces simulates a cloud computing environment using Google data traces to emulate VMs workload and management heuristics behavior; source code, and documentation for using the Google data trace and extending management heuristics can be found <a href="https://github.com/Autonomiccs/cloud-traces">here</a>.
