@@ -5,9 +5,9 @@ This project adds a set of heuristics capable of balancing VMs across hosts, avo
 ## Cloud-traces
 This is a branch from the project Cloud-traces. Cloud-traces simulates a cloud computing environment using Google data traces to emulate VMs workload and management heuristics behavior; source code, and documentation for using the Google data trace and extending management heuristics can be found <a href="https://github.com/Autonomiccs/cloud-traces">here</a>.
 
-## VMs balancing algorithm and IEEE CLOUD 2017
+## VMs balancing algorithm and IEEE SERVICES 2017
 
-This project has the algorithm developed for the conference paper submitted in IEEE CLOUD 2017, added in the Cloud-traces project. The VMs balancing algorithm is at the class ClusterVmsBalancingOrientedBySimilarity (br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarity).
+This project has the algorithm developed for the conference paper submitted in IEEE SERVICES 2017, added in the Cloud-traces project. The VMs balancing algorithm is at the class ClusterVmsBalancingOrientedBySimilarity (br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarity).
  
 ## Usage
 The usage can be summarized in the following steps:
