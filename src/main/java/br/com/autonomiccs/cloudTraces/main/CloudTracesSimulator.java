@@ -46,6 +46,7 @@ import br.com.autonomiccs.cloudTraces.algorithms.deployment.SmallestClustersFirs
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterAdministrationAlgorithm;
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterAdministrationAlgorithmEmptyImpl;
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarity;
+import br.com.autonomiccs.cloudTraces.algorithms.management.SimpleVmsDispersionAlgorithmForHomogeneousEnvironment;
 import br.com.autonomiccs.cloudTraces.beans.Cloud;
 import br.com.autonomiccs.cloudTraces.beans.Cluster;
 import br.com.autonomiccs.cloudTraces.beans.GoogleJob;
@@ -240,6 +241,9 @@ public class CloudTracesSimulator {
         } else {
             if (algorithmName.equals("empty")) {
                 return new ClusterAdministrationAlgorithmEmptyImpl();
+            }
+            if (algorithmName.equals("simpleVmsDispersion")) {
+                return new SimpleVmsDispersionAlgorithmForHomogeneousEnvironment();
             } else {
                 return new ClusterVmsBalancingOrientedBySimilarity();
             }
@@ -513,7 +517,8 @@ public class CloudTracesSimulator {
     private static Cloud createCloudEnvirtonmentToStartsimulation() {
         Cloud cloud = new Cloud("Google data traces");
         cloud.getClusters().addAll(createClustersLargeSizeHosts(1));
-        cloud.getClusters().addAll(createClustersWithEnourmousHosts(4));
+        cloud.getClusters().addAll(createClustersMediumSizeHosts(1));
+        cloud.getClusters().addAll(createClustersWithEnourmousHosts(6));
 
         long totalMemory = 0;
         long totalCpu = 0;
