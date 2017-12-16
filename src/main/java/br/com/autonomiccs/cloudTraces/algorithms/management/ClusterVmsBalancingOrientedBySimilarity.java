@@ -470,7 +470,13 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
          */
         @Override
         public int compare(ComputingResourceIdAndScore c1, ComputingResourceIdAndScore c2) {
-            return (int) (c1.getScore() - c2.getScore());
+            //            return (int) (c1.getScore() - c2.getScore());
+            if (c1.getScore() > c2.getScore())
+                return 1;
+            if (c1.getScore() < c2.getScore())
+                return -1;
+            else
+                return 0;
         }
 
     }
