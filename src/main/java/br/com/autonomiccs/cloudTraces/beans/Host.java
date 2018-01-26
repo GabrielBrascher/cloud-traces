@@ -21,20 +21,13 @@
  */
 package br.com.autonomiccs.cloudTraces.beans;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Host extends ComputingResource {
 
     private Set<VirtualMachine> virtualMachines = new HashSet<>();
     private String clusterId;
-    private long predictedCpuUsageInMhz;
-    private long predictedMemoryUsageInMib;
-    private int sampleSize; //TODO enhance variable name
-    List<Long> cpuUsageInMhzSample = new ArrayList<>();
-    List<Long> memoryUsageInMibSample = new ArrayList<>();
 
     public Host(String id) {
         super(id);
@@ -42,51 +35,6 @@ public class Host extends ComputingResource {
 
     public Set<VirtualMachine> getVirtualMachines() {
         return virtualMachines;
-    }
-
-    public long getPredictedCpuUsageInMhz() {
-        return predictedCpuUsageInMhz;
-    }
-
-    public long getPredictedMemoryUsageInMib() {
-        return predictedMemoryUsageInMib;
-    }
-
-    /**
-     * TODO
-     */
-    public void updateHostUsagePrediction() {
-        updateUsageSamples();
-
-        long sumOfCpuUsageInMhz = 0;
-        long sumOfMemoryUsageInMib = 0;
-
-        for (int i = cpuUsageInMhzSample.size() - 1; i > 0; i--) {
-            sumOfCpuUsageInMhz += cpuUsageInMhzSample.get(i);
-            sumOfMemoryUsageInMib += memoryUsageInMibSample.get(i);
-        }
-
-        sumOfCpuUsageInMhz = sumOfCpuUsageInMhz / cpuUsageInMhzSample.size();
-        sumOfMemoryUsageInMib = sumOfMemoryUsageInMib / cpuUsageInMhzSample.size();
-        predictedCpuUsageInMhz = (predictedMemoryUsageInMib + sumOfCpuUsageInMhz) / 2;
-        predictedMemoryUsageInMib = (predictedMemoryUsageInMib + sumOfMemoryUsageInMib) / 2;
-    }
-
-    /**
-     * It removes the oldest CPU and Memory usage in the sample of resources usage and includes new
-     * usage metrics.
-     */
-    private void updateUsageSamples() {
-        if (cpuUsageInMhzSample.size() < sampleSize) {
-            cpuUsageInMhzSample.add(this.getCpuUsedInMhz());
-            memoryUsageInMibSample.add(this.getMemoryUsedInBytes());
-        } else {
-            cpuUsageInMhzSample.remove(0);
-            cpuUsageInMhzSample.add(this.getCpuUsedInMhz());
-
-            memoryUsageInMibSample.remove(0);
-            memoryUsageInMibSample.add(this.getMemoryUsedInBytes());
-        }
     }
 
     public void addVirtualMachine(VirtualMachine vm) {
@@ -98,6 +46,9 @@ public class Host extends ComputingResource {
 
         setCpuAllocatedInMhz(getCpuAllocatedInMhz() + vmRequestedCpu);
         setMemoryAllocatedInBytes(getMemoryAllocatedInBytes() + getVmRquestedMemoryInBytes(vmServiceOffering));
+
+        setCpuUsedInMhz(getCpuUsedInMhz() + vm.getCpuUsedInMhz());
+        setMemoryUsedInMiB(getMemoryUsedInMib() + vm.getMemoryUsedInMib());
     }
 
     private long getVmRquestedMemoryInBytes(VmServiceOffering vmServiceOffering) {

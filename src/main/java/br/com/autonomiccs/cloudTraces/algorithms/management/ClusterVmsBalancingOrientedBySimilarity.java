@@ -23,7 +23,7 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
     private long totalClusterCpuInMhz = 0, allocatedClusterCpuInMhz = 0, totalClusterMemoryInMib = 0, allocatedClusterMemoryInMib = 0;
     protected long vmsAllocatedCpuInMhzMedian, vmsAllocatedMemoryInMibMedian, vmsAllocatedCpuInMhzMean, vmsAllocatedMemoryInMibMean;
 
-    private StandardDeviation std = new StandardDeviation(false);
+    protected StandardDeviation std = new StandardDeviation(false);
 
     protected static final long NUMBER_OF_BYTES_IN_ONE_MEGA_BYTE = 1024l;
     protected static final String COSINE_SIMILARITY_WITH_HOST_VM_RATIO = "cosineSimilarityWithHostVmRatio";
@@ -115,7 +115,7 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
         double cpuUsage[] = new double[hosts.size()];
 
         for (int i = 0; i < hosts.size(); i++) {
-            memoryUsage[i] = (double) hosts.get(i).getMemoryAllocatedInMib() / (double) hosts.get(i).getTotalMemoryInMib();
+            memoryUsage[i] = (double) (hosts.get(i).getMemoryAllocatedInMib()) / (double) hosts.get(i).getTotalMemoryInMib();
             cpuUsage[i] = (double) hosts.get(i).getCpuAllocatedInMhz() / (double) hosts.get(i).getTotalCpuPowerInMhz();
         }
         double memoryStd = std.evaluate(memoryUsage);
@@ -169,7 +169,7 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
         }
     }
 
-    private Host findHostFromOriginalRankedList(Host candidateToReceiveVms) {
+    protected Host findHostFromOriginalRankedList(Host candidateToReceiveVms) {
         for (Host h : originalManagedHostsList) {
             if (h.getId().equals(candidateToReceiveVms.getId())) {
                 return h;
@@ -219,7 +219,7 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
     }
 
     protected double cosineSimilarity(long[] vmResourcesVector, long[] hostResourcesVector) {
-        double sumOfProducts = 0;
+        long sumOfProducts = 0;
         long sumOfVmResourcesVector = 0;
         long sumOfHostResourcesVector = 0;
         for (int i = 0; i < vmResourcesVector.length; i++) {
@@ -239,7 +239,7 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
     }
 
     protected double calculateCosize(double alfa, long[] vmResourcesVector, long[] hostResourcesVector) {
-        double productOfVmResourcesVector = 1;
+        long productOfVmResourcesVector = 1;
         for (int i = 0; i < vmResourcesVector.length; i++) {
             productOfVmResourcesVector = productOfVmResourcesVector * vmResourcesVector[i];
         }
@@ -251,8 +251,16 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
         double productOfVmResourcesVector = 1;
         double productOfHostResourcesVector = 1;
         for (int i = 0; i < vmResourcesVector.length; i++) {
-            productOfVmResourcesVector = productOfVmResourcesVector * vmResourcesVector[i];
-            productOfHostResourcesVector = productOfHostResourcesVector * hostResourcesVector[i];
+            long vmResourcesVectorValue = vmResourcesVector[i];
+            long hostResourcesVectorValue = hostResourcesVector[i];
+            if (vmResourcesVectorValue == 0l) {
+                vmResourcesVectorValue = 1l;
+            }
+            if (hostResourcesVectorValue == 0l) {
+                hostResourcesVectorValue = 1l;
+            }
+            productOfVmResourcesVector = productOfVmResourcesVector * vmResourcesVectorValue;
+            productOfHostResourcesVector = productOfHostResourcesVector * hostResourcesVectorValue;
         }
         double cos = cosineSimilarity(vmResourcesVector, hostResourcesVector);
         return Math.pow(cos, alfa) * (productOfHostResourcesVector / productOfVmResourcesVector);
@@ -470,13 +478,15 @@ public class ClusterVmsBalancingOrientedBySimilarity extends ClusterAdministrati
          */
         @Override
         public int compare(ComputingResourceIdAndScore c1, ComputingResourceIdAndScore c2) {
-            //            return (int) (c1.getScore() - c2.getScore());
-            if (c1.getScore() > c2.getScore())
-                return 1;
-            if (c1.getScore() < c2.getScore())
+            // return (int) (c1.getScore() - c2.getScore());
+            if (c1.getScore() < c2.getScore()) {
                 return -1;
-            else
+            }
+            if (c1.getScore() > c2.getScore()) {
+                return 1;
+            } else {
                 return 0;
+            }
         }
 
     }

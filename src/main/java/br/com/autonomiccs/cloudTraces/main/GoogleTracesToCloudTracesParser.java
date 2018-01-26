@@ -145,8 +145,8 @@ public class GoogleTracesToCloudTracesParser {
                     double vmUsedMemoryForTime = 0;
                     double vmUsedCpuForTime = 0;
                     for (GoogleTask googleTask : vmTasksForTime) {
-                        vmUsedCpuForTime += googleTask.getCpuUsage();
-                        vmUsedMemoryForTime += googleTask.getMemoryUsage();
+                        vmUsedCpuForTime += googleTask.getCpuUsageInMhz();
+                        vmUsedMemoryForTime += googleTask.getMemoryUsageInMb();
                     }
                     String vmTraceForTime = String.format("%d, %s, %d, %d, %s, %d, %d, %d, %.10f, %.10f", time, virtualMachine.getVmId(), virtualMachine.getDeployTime(),
                             virtualMachine.getDestroyTime(), vmServiceOffering.getName(), vmServiceOffering.getNumberOfCores(),
@@ -215,8 +215,8 @@ public class GoogleTracesToCloudTracesParser {
                 double cpuUsageAtTime = 0;
                 double memoryUsageAtTime = 0;
                 for (GoogleTask googleTask : googleJob.getMapTimeByTasks().get(time)) {
-                    cpuUsageAtTime += googleTask.getCpuUsage();
-                    memoryUsageAtTime += googleTask.getMemoryUsage();
+                    cpuUsageAtTime += googleTask.getCpuUsageInMhz();
+                    memoryUsageAtTime += googleTask.getMemoryUsageInMb();
                 }
                 if (cpuUsageAtTime > googleJob.getMaximumCpuUsageAtTime()) {
                     googleJob.setMaximumCpuUsageAtTime(cpuUsageAtTime);
@@ -295,8 +295,8 @@ public class GoogleTracesToCloudTracesParser {
         googleTask.setNormalizedTaskCores(normalizedTaskCores);
         googleTask.setNormalizedTaskMemory(normalizedTaskMemory);
 
-        googleTask.setCpuUsage(deNormalizeData(normalizedTaskCores, maximumCoreUsageInMhz, minimumCoreUsageInMhz));
-        googleTask.setMemoryUsage(deNormalizeData(normalizedTaskMemory, maximumMemoryUsageInMb, minimumMemoryUsageInMb));
+        googleTask.setCpuUsageInMhz(deNormalizeData(normalizedTaskCores, maximumCoreUsageInMhz, minimumCoreUsageInMhz));
+        googleTask.setMemoryUsageInMb(deNormalizeData(normalizedTaskMemory, maximumMemoryUsageInMb, minimumMemoryUsageInMb));
         return googleTask;
     }
 

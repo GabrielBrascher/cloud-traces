@@ -46,6 +46,9 @@ import br.com.autonomiccs.cloudTraces.algorithms.deployment.SmallestClustersFirs
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterAdministrationAlgorithm;
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterAdministrationAlgorithmEmptyImpl;
 import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarity;
+import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarityWithOverprovisioning;
+import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarityWithUsedResources;
+import br.com.autonomiccs.cloudTraces.algorithms.management.ClusterVmsBalancingOrientedBySimilarityWithUsedResourcesAverageTendence;
 import br.com.autonomiccs.cloudTraces.algorithms.management.SimpleVmsDispersionAlgorithmForHomogeneousEnvironment;
 import br.com.autonomiccs.cloudTraces.beans.Cloud;
 import br.com.autonomiccs.cloudTraces.beans.Cluster;
@@ -267,6 +270,14 @@ public class CloudTracesSimulator {
             }
             if (algorithmName.equals("simpleVmsDispersion")) {
                 return new SimpleVmsDispersionAlgorithmForHomogeneousEnvironment();
+            }
+            if (algorithmName.equals("vmsBalanceWithUsedResources")) {
+                return new ClusterVmsBalancingOrientedBySimilarityWithUsedResources();
+            } if (algorithmName.equals("vmsBalanceWithHistoricTendenceOfUsedResources")) {
+                return new ClusterVmsBalancingOrientedBySimilarityWithUsedResourcesAverageTendence();
+            }
+            if (algorithmName.equals("ServicesWithOverprovisioning")) {
+                return new ClusterVmsBalancingOrientedBySimilarityWithOverprovisioning();
             } else {
                 return new ClusterVmsBalancingOrientedBySimilarity();
             }
@@ -300,29 +311,44 @@ public class CloudTracesSimulator {
     private static final LinearInterpolator linearInterpolator = new LinearInterpolator();
 
     private static void updateHostResourceUsageForTime(Host h, double currentTime) {
-        long memoryUsed = 0;
-        long cpuUsed = 0;
+        long memoryUsedInMb = 0;
+        long cpuUsedInMhz = 0;
         for (VirtualMachine vm : h.getVirtualMachines()) {
             GoogleTask googleTask = getTaskExecutionForTimeEqualCurrentTime(vm, currentTime);
+            long vmMemoryUsedInMb = 0;
+            long vmCpuUsedInMhz = 0;
+
             if (googleTask != null) {
-                memoryUsed += googleTask.getMemoryUsage();
-                cpuUsed += googleTask.getCpuUsage();
+                vmMemoryUsedInMb += googleTask.getMemoryUsageInMb();
+                memoryUsedInMb += googleTask.getMemoryUsageInMb();
+
+                vmCpuUsedInMhz += googleTask.getCpuUsageInMhz();
+                cpuUsedInMhz += googleTask.getCpuUsageInMhz();
                 continue;
             }
             GoogleTask googleTaskBeforeCurrentTime = getTaskExecutionForTimeRightBeforeCurrentTime(vm, currentTime);
             GoogleTask googleTaskAfterCurrentTime = getTaskExecutionForTimeRightAfterCurrentTime(vm, currentTime);
 
             if (googleTaskBeforeCurrentTime == googleTaskAfterCurrentTime) {
-                memoryUsed += googleTaskAfterCurrentTime.getMemoryUsage();
-                cpuUsed += googleTaskAfterCurrentTime.getCpuUsage();
+                vmMemoryUsedInMb += googleTaskAfterCurrentTime.getMemoryUsageInMb();
+                memoryUsedInMb += googleTaskAfterCurrentTime.getMemoryUsageInMb();
+
+                vmCpuUsedInMhz += googleTaskAfterCurrentTime.getCpuUsageInMhz();
+                cpuUsedInMhz += googleTaskAfterCurrentTime.getCpuUsageInMhz();
                 continue;
             }
 
-            memoryUsed += calculateUsedMemoryInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
-            cpuUsed += calculateUsedCpuInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
+            vmMemoryUsedInMb += calculateUsedMemoryInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
+            memoryUsedInMb += calculateUsedMemoryInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
+
+            vmCpuUsedInMhz += calculateUsedCpuInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
+            cpuUsedInMhz += calculateUsedCpuInterpolatedValue(googleTaskBeforeCurrentTime, currentTime, googleTaskAfterCurrentTime);
+
+            vm.setMemoryUsedInMiB(vmMemoryUsedInMb);
+            vm.setCpuUsedInMhz(vmCpuUsedInMhz);
         }
-        h.setMemoryUsedInMiB(memoryUsed);
-        h.setCpuUsedInMhz(cpuUsed);
+        h.setMemoryUsedInMiB(memoryUsedInMb);
+        h.setCpuUsedInMhz(cpuUsedInMhz);
     }
 
     private static double calculateUsedCpuInterpolatedValue(GoogleTask googleTaskBeforeCurrentTime, double currentTime, GoogleTask googleTaskAfterCurrentTime) {
@@ -331,8 +357,8 @@ public class CloudTracesSimulator {
         x[1] = googleTaskAfterCurrentTime.getTime();
 
         double y[] = new double[2];
-        y[0] = googleTaskBeforeCurrentTime.getCpuUsage();
-        y[1] = googleTaskAfterCurrentTime.getCpuUsage();
+        y[0] = googleTaskBeforeCurrentTime.getCpuUsageInMhz();
+        y[1] = googleTaskAfterCurrentTime.getCpuUsageInMhz();
         return linearInterpolator.interpolate(x, y).value(currentTime);
     }
 
@@ -342,8 +368,8 @@ public class CloudTracesSimulator {
         x[1] = googleTaskAfterCurrentTime.getTime();
 
         double y[] = new double[2];
-        y[0] = googleTaskBeforeCurrentTime.getMemoryUsage();
-        y[1] = googleTaskAfterCurrentTime.getMemoryUsage();
+        y[0] = googleTaskBeforeCurrentTime.getMemoryUsageInMb();
+        y[1] = googleTaskAfterCurrentTime.getMemoryUsageInMb();
         return linearInterpolator.interpolate(x, y).value(currentTime);
     }
 
@@ -539,11 +565,14 @@ public class CloudTracesSimulator {
 
     private static Cloud createCloudEnvirtonmentToStartsimulation() {
         Cloud cloud = new Cloud("Google data traces");
-//        cloud.getClusters().addAll(createClustersLargeSizeHosts(1));
-//        cloud.getClusters().addAll(createClustersWithEnourmousHosts(4));
-        cloud.getClusters().addAll(createClustersLargeSizeHosts(1));
-        cloud.getClusters().addAll(createClustersMediumSizeHosts(1));
-        cloud.getClusters().addAll(createClustersWithEnourmousHosts(6));
+        //        cloud.getClusters().addAll(createClustersLargeSizeHosts(1));
+        //        cloud.getClusters().addAll(createClustersWithEnourmousHosts(4));
+
+        //        cloud.getClusters().addAll(createClustersLargeSizeHosts(1));
+        //        cloud.getClusters().addAll(createClustersMediumSizeHosts(1));
+        //        cloud.getClusters().addAll(createClustersWithEnourmousHosts(6));
+
+        cloud.getClusters().addAll(createClustersWithEnourmousHosts(10));
 
         long totalMemory = 0;
         long totalCpu = 0;
@@ -685,8 +714,8 @@ public class CloudTracesSimulator {
 
     private static GoogleTask createTask(Matcher matcher, int time, int jobId) {
         GoogleTask googleTask = new GoogleTask(jobId + time, time, jobId);
-        googleTask.setCpuUsage(Double.parseDouble(matcher.group(9)));
-        googleTask.setMemoryUsage(Double.parseDouble(matcher.group(11)));
+        googleTask.setCpuUsageInMhz(Double.parseDouble(matcher.group(9)));
+        googleTask.setMemoryUsageInMb(Double.parseDouble(matcher.group(11)));
         return googleTask;
     }
 

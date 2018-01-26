@@ -31,6 +31,9 @@ public class VirtualMachine {
     private VmServiceOffering vmServiceOffering;
     private GoogleJob googleJob;
 
+    private long memoryUsedInMiB;
+    private long cpuUsedInMhz;
+
     private Host host;
 
     public int getDeployTime() {
@@ -79,6 +82,22 @@ public class VirtualMachine {
 
     public Host getHost() {
         return host;
+    }
+
+    public void setMemoryUsedInMiB(long memoryUsedInInMiB) {
+        this.memoryUsedInMiB = memoryUsedInInMiB;
+    }
+
+    public long getMemoryUsedInMib() {
+        return memoryUsedInMiB;
+    }
+
+    public long getCpuUsedInMhz() {
+        return cpuUsedInMhz;
+    }
+
+    public void setCpuUsedInMhz(long cpuUsedInMhz) {
+        this.cpuUsedInMhz = cpuUsedInMhz;
     }
 
     @Override

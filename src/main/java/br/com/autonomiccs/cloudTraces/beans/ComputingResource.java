@@ -21,6 +21,9 @@
  */
 package br.com.autonomiccs.cloudTraces.beans;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class ComputingResource implements Cloneable {
 
     protected static final long NUMBER_OF_BYTES_IN_ONE_MEGA_BYTE = 1024l;
@@ -36,8 +39,13 @@ public abstract class ComputingResource implements Cloneable {
     private long memoryUsedInBytes;
     private long cpuUsedInMhz;
 
+    private List<Long> historicMemoryUsedInMib;
+    private List<Long> historicCpuUsedInMhz;
+
     public ComputingResource(String id) {
         this.id = id;
+        historicMemoryUsedInMib = new ArrayList<>();
+        historicCpuUsedInMhz = new ArrayList<>();
     }
 
     //TODO
@@ -78,6 +86,22 @@ public abstract class ComputingResource implements Cloneable {
 
     public long getTotalMemoryInMib() {
         return totalMemoryInBytes / NUMBER_OF_BYTES_IN_ONE_MEGA_BYTE;
+    }
+
+    public List<Long> getHistoricMemoryUsedInMib() {
+        return historicMemoryUsedInMib;
+    }
+
+    public void setHistoricMemoryUsedInMib(List<Long> historicMemoryUsedInMib) {
+        this.historicMemoryUsedInMib = historicMemoryUsedInMib;
+    }
+
+    public List<Long> getHistoricCpuUsedInMhz() {
+        return historicCpuUsedInMhz;
+    }
+
+    public void setHistoricCpuUsedInMhz(List<Long> historicCpuUsedInMhz) {
+        this.historicCpuUsedInMhz = historicCpuUsedInMhz;
     }
 
     //TODO
@@ -132,8 +156,8 @@ public abstract class ComputingResource implements Cloneable {
         return memoryUsedInBytes;
     }
 
-    public void setMemoryUsedInMiB(long memoryUsedInBytes) {
-        this.memoryUsedInBytes = memoryUsedInBytes * NUMBER_OF_BYTES_IN_ONE_MEGA_BYTE;
+    public void setMemoryUsedInMiB(long memoryUsedInMiB) {
+        this.memoryUsedInBytes = memoryUsedInMiB * NUMBER_OF_BYTES_IN_ONE_MEGA_BYTE;
     }
 
     public void setMemoryUsedInBytes(long memoryUsedInBytes) {
@@ -152,4 +176,5 @@ public abstract class ComputingResource implements Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
 }

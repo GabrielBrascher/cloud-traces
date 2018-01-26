@@ -106,19 +106,19 @@ public class GoogleTask implements Comparable<GoogleTask> {
                 normalizedTaskCores, normalizedTaskMemory, this.executionThroughTime.size());
     }
 
-    public double getCpuUsage() {
+    public double getCpuUsageInMhz() {
         return cpuUsage;
     }
 
-    public void setCpuUsage(double cpuUsage) {
+    public void setCpuUsageInMhz(double cpuUsage) {
         this.cpuUsage = cpuUsage;
     }
 
-    public double getMemoryUsage() {
+    public double getMemoryUsageInMb() {
         return memoryUsage;
     }
 
-    public void setMemoryUsage(double memoryUsage) {
+    public void setMemoryUsageInMb(double memoryUsage) {
         this.memoryUsage = memoryUsage;
     }
 
